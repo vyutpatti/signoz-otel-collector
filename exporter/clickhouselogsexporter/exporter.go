@@ -19,8 +19,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"regexp"
-	"strconv"
+	// sri "regexp"
+	// sri "strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -250,7 +250,7 @@ func (e *clickhouseLogsExporter) updateMinAcceptedTs() {
 	e.logger.Info("fetching min accepted ts")
 
 	ctx := context.Background()
-	var delTTL uint64 = 0
+	// sri - var delTTL uint64 = 0
 	var dbResp []DBResponseTTL
 	q := fmt.Sprintf("SELECT engine_full FROM system.tables WHERE name='%s' and database='%s'", DISTRIBUTED_LOGS_TABLE_V2, databaseName)
 	err := e.db.Select(ctx, &dbResp, q)
@@ -263,18 +263,20 @@ func (e *clickhouseLogsExporter) updateMinAcceptedTs() {
 		return
 	}
 
-	deleteTTLExp := regexp.MustCompile(`toIntervalSecond\(([0-9]*)\)`)
-	m := deleteTTLExp.FindStringSubmatch(dbResp[0].EngineFull)
-	if len(m) > 1 {
-		seconds_int, err := strconv.Atoi(m[1])
-		if err != nil {
-			e.logger.Error("error while converting ttl to int", zap.Error(err))
-			return
-		}
-		delTTL = uint64(seconds_int)
-	}
+	// sri
+	// deleteTTLExp := regexp.MustCompile(`toIntervalSecond\(([0-9]*)\)`)
+	// m := deleteTTLExp.FindStringSubmatch(dbResp[0].EngineFull)
+	// if len(m) > 1 {
+	// 	seconds_int, err := strconv.Atoi(m[1])
+	// 	if err != nil {
+	// 		e.logger.Error("error while converting ttl to int", zap.Error(err))
+	// 		return
+	// 	}
+	// 	// sri - delTTL = uint64(seconds_int)
+	// }
 
-	acceptedDateTime := time.Now().Add(-(time.Duration(delTTL) * time.Second))
+	// sri - acceptedDateTime := time.Now().Add(-(time.Duration(delTTL) * time.Second))
+	acceptedDateTime := time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC)
 	e.minAcceptedTs.Store(uint64(acceptedDateTime.UnixNano()))
 }
 
@@ -310,9 +312,10 @@ func tsBucket(ts int64, bucketSize int64) int64 {
 
 func (e *clickhouseLogsExporter) pushToClickhouse(ctx context.Context, ld plog.Logs) error {
 	oldestAllowedTs := uint64(0)
-	if e.minAcceptedTs.Load() != nil {
-		oldestAllowedTs = e.minAcceptedTs.Load().(uint64)
-	}
+	// sri
+	// if e.minAcceptedTs.Load() != nil {
+	// 	oldestAllowedTs = e.minAcceptedTs.Load().(uint64)
+	// }
 
 	resourcesSeen := map[int64]map[string]string{}
 
@@ -438,6 +441,8 @@ func (e *clickhouseLogsExporter) pushToClickhouse(ctx context.Context, ld plog.L
 					if ts == 0 {
 						ts = ots
 					}
+
+					e.logger.Debug("TS and OldestAllowedTS ", zap.Uint64("ts", ts), zap.Uint64("oldestAllowedTs", oldestAllowedTs))
 
 					if ts < oldestAllowedTs {
 						e.logger.Debug("skipping log", zap.Uint64("ts", ts), zap.Uint64("oldestAllowedTs", oldestAllowedTs))

@@ -143,6 +143,7 @@ func (l *JSON) Parse(body []byte) (plog.Logs, int, error) {
 			copy(spanID[:], spanIdByte)
 			rec.SetSpanID(pcommon.SpanID(spanID))
 		}
+		//return plog.NewLogs(), 0, fmt.Errorf("timestamp value: %d, %v, %v, %v, %v, %v, %v", log.Timestamp, time.Unix(0,log.Timestamp), time.Unix(0, log.Timestamp).UTC(), time.Now().UTC(), pcommon.NewTimestampFromTime(time.Unix(0, log.Timestamp)),pcommon.NewTimestampFromTime(time.Unix(0, log.Timestamp).UTC()),pcommon.NewTimestampFromTime(time.Now().UTC()))
 		rec.SetTimestamp(pcommon.NewTimestampFromTime(time.Unix(0, log.Timestamp)))
 		rec.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now().UTC()))
 		rec.SetSeverityText(log.SeverityText)
